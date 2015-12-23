@@ -229,7 +229,7 @@ classdef (Abstract) Model
 
     end
     
-    function obj = train(obj, X, y, xMean, generation, sigma, BD, sampleVariables)
+    function obj = train(obj, X, y, xMean, generation, sigma, BD)%, sampleVariables)
     % train the model based on the data (X,y)
 
       % minimal difference between minimal and maximal returned
@@ -248,7 +248,7 @@ classdef (Abstract) Model
         XTransf = X;
       end
       obj.trainMean = xMean;
-      obj.sampleVariables = sampleVariables;
+      %obj.sampleVariables = sampleVariables;
 
       % dimensionality reduction
       if (isprop(obj, 'dimReduction') && (obj.dimReduction ~= 1))
@@ -265,18 +265,18 @@ classdef (Abstract) Model
 
       obj = trainModel(obj, XtransfReduce, y, xMean, generation);
 
-      if (obj.isTrained())
-        % Test that we don't have a constant model
-        [~, xTestValid] = ...
-          sampleCmaesNoFitness(obj.sampleVariables.xmean, obj.sampleVariables.sigma, ...
-          2*obj.sampleVariables.lambda, obj.sampleVariables.BD, obj.sampleVariables.diagD, ...
-          obj.sampleVariables.sampleOpts);
-        yPredict = obj.predict(xTestValid');
-        if (max(yPredict) - min(yPredict) < MIN_RESPONSE_DIFFERENCE)
-          fprintf('Model.train(): model output is constant (diff=%e), considering the model as un-trained.\n', max(yPredict) - min(yPredict));
-          obj.trainGeneration = -1;
-        end
-      end
+%       if (obj.isTrained())
+%         % Test that we don't have a constant model
+%         [~, xTestValid] = ...
+%           sampleCmaesNoFitness(obj.sampleVariables.xmean, obj.sampleVariables.sigma, ...
+%           2*obj.sampleVariables.lambda, obj.sampleVariables.BD, obj.sampleVariables.diagD, ...
+%           obj.sampleVariables.sampleOpts);
+%         yPredict = obj.predict(xTestValid');
+%         if (max(yPredict) - min(yPredict) < MIN_RESPONSE_DIFFERENCE)
+%           fprintf('Model.train(): model output is constant (diff=%e), considering the model as un-trained.\n', max(yPredict) - min(yPredict));
+%           obj.trainGeneration = -1;
+%         end
+%       end
     end
   end
 

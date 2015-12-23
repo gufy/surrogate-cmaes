@@ -7,3 +7,6 @@ addpath(genpath('exp/util'));
 addpath(genpath('exp/vendor'));
 addpath('exp/experiments');
 run('src/vendor/gpml-matlab-v3.2/startup.m');
+
+%
+setenv('PATH', [getenv('PATH') ':/usr/local/bin']);
