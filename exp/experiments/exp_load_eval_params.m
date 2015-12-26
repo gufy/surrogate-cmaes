@@ -2,12 +2,12 @@
 i=1;
 
 % dimension \in {5, 10, 20}  3
-P(i).name = 'dimensions';
-P(i).values = {2};% {5 10 20}; %{2 5 10 20};
+P(i).name = 'dim';
+P(i).values = {5};% {5 10 20}; %{2 5 10 20};
 i = i + 1;
 
 % function \in {1, 2, ?, 24}  24
-P(i).name = 'functions';
+P(i).name = 'fun';
 P(i).values = num2cell(1:24);
 i = i + 1;
 
