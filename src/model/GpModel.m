@@ -109,6 +109,7 @@ classdef GpModel < Model
 
       % normalize y if specified, @meanZero, or if large y-scale
       % (at least for CMA-ES hyperparameter optimization)
+      
       if (~obj.options.normalizeY ...
           && (isequal(obj.meanFcn, @meanZero) || (max(y) - min(y)) > 1e4))
         fprintf(2, 'Y-Normalization is switched ON for @meanZero covariance function of large Y-scale.\n');
@@ -229,9 +230,10 @@ classdef GpModel < Model
       warning('off');
       try
         [hyp_, fval, iters] = minimize(obj.hyp, @gp, -100, obj.infFcn, obj.meanFcn, obj.covFcn, obj.likFcn, X, y);
-      catch
+      catch e
         fprintf(2, 'minimize() failed.\n');
-        warning('on');
+        fprintf(2, getReport(e));
+	warning('on');
         obj.nErrors = modelTrainNErrors;
         return;
       end

@@ -33,7 +33,9 @@ for ExpId = 1:30
         [Xtrain, Dtrain] = cp_load_archive(@(x) (x.generations == G + params.testgen), CmaesOut);
         model = model.train(Xtrain', Dtrain', 1, 1, 1, 1);
 
-        Err = (1/length(Dtrain))*(sum((Dtrain - model.predict(Xtrain')').^2));
+	Ytrain = model.predict(Xtrain')';
+
+        Err = (1/length(Dtrain))*(sum((Dtrain - Ytrain).^2));
         Errs(ExpId) = Err;
         ErrAcc = ErrAcc + Err;
     end

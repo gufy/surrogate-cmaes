@@ -1,4 +1,4 @@
-paths_to_project = '/Users/vojta/Documents/MATLAB/regression-models';
+paths_to_project = '/storage/plzen1/home/goophy/cmaes';
 exp_load_eval_params;
 
 totalComb = cp_get_total_comb_of_params(P);

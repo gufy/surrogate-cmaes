@@ -10,11 +10,19 @@ setup_mail;
 try
 	res = {};
 	for I = 1:length(arr_of_params)
-    	display(I);
+	    	display(I);
 		params = arr_of_params{I};
-    	params = cp_prepare_exp_params(params);
-        params.transformCoordinates = false;
-		res{I} = cp_eval_exp_and_save(params, exppath_short);
+    		params = cp_prepare_exp_params(params);
+        	params.transformCoordinates = false;
+		try
+			res{I} = cp_eval_exp_and_save(params, exppath_short);
+		catch e
+			try
+            			getReport(e)
+		            	sendmail('vojtech.kopal@gmail.com', 'MATLAB Error', getReport(e));
+		        catch e
+        		end
+		end
 	end
 catch e
     	try

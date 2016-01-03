@@ -100,7 +100,7 @@ P(i).values = {1 5};
 i = i + 1;
 
 % algorithm \in {minimize(), fmincon(), CMA-ES}  3
-P(i).name = 'optalg';
-P(i).values = {'minimize'}; %{'minimize', 'fmincon', 'cmaes'}; %TODO: Implement
+P(i).name = 'trainAlgorithm';
+P(i).values = {'fmincon'}; %{'minimize', 'fmincon', 'cmaes'}; %TODO: Implement
 i = i + 1;
 

@@ -40,6 +40,7 @@ for J = 1:numel(fields)
                 value = num2str(struct_in.(key));
             end
         end
+	value = urlencode(value);
     end
     
     string_out = [string_out, key, '=', value];
