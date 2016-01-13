@@ -27,7 +27,7 @@ classdef Archive
       obj.y = [obj.y; y(isNotYetSaved,:)];
       obj.gens = [obj.gens; generation * ones(sum(isNotYetSaved),1)];
     end
-
+    
     function [X, y] = getDataFromGenerations(obj, generations)
       % return data from generation(s) defined in scalar/vector @generations
       dataIdxs = ismember(obj.gens, generations);
@@ -35,34 +35,44 @@ classdef Archive
       y = obj.y(dataIdxs);
     end
 
-    function [X, y] = getDataNearPoint(obj, n, x, rangeSigma, sigma, BD)
+    function [X, y] = getDataNearPoint(obj, n, x, rangeSigma, sigma, BD, generations)
       % returns up to 'n' data within distance of 'rangeSigma' along the point 'x'
       % using (sigma*BD)-metric
       % if more than 'n' data are closer than 'rangeSigma', k-means clustering is
       % performed
       % if (n == 0), all the available data are returned
-      nData = length(obj.y);
+      % 
+      % generations is optional param
+      
+      if nargin < 7
+          src_X = obj.X;
+          src_y = obj.y;
+      else 
+          [src_X, src_y] = obj.getDataFromGenerations(generations);
+      end
+      
+      nData = length(src_y);
       X = []; y = [];
       
       if (nData == 0)
         return;
       end
-
+      
       % compute coordinates in the (sigma*BD)-basis
       BDinv = inv(sigma*BD);
-      xTransf = ( BDinv * (obj.X - repmat(x,nData,1))' )';
+      xTransf = ( BDinv * (src_X - repmat(x,nData,1))' )';
       
       % take the points closer than *rangeSigma*
       diff = sum(xTransf.^2, 2);
       isInRange = diff < (rangeSigma ^ 2);
 
       if (sum(isInRange) <= n  ||  n <= 0)
-        X = obj.X(isInRange,:);
-        y = obj.y(isInRange);
+        X = src_X(isInRange,:);
+        y = src_y(isInRange);
       else
         % cluster the transformed data into n clusters
         closerDataX = xTransf(isInRange,:);
-        closerDataY = obj.y(isInRange);
+        closerDataY = src_y(isInRange);
         closerThan2SigmaIdx = find(isInRange);
         try
           [~, ~, ~, D] = kmeans(closerDataX, n);
@@ -71,13 +81,13 @@ classdef Archive
           [~, closestToCentroid] = min(D, [], 1);
           for closestIdx = closestToCentroid
             % return the original coordinates, not the transformed
-            X = [X; obj.X(closerThan2SigmaIdx(closestIdx),:)];
+            X = [X; src_X(closerThan2SigmaIdx(closestIdx),:)];
             y = [y; closerDataY(closestIdx)];
           end
         catch err
           warning('Archive.getDataNearPoint(): %s\n', err.message);
           randp = randperm(length(closerThan2SigmaIdx));
-          X = [X; obj.X(closerThan2SigmaIdx(randp(1:n)),:)];
+          X = [X; src_X(closerThan2SigmaIdx(randp(1:n)),:)];
           y = [y; closerDataY(randp(1:n))];
         end
       end

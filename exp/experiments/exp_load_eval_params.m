@@ -8,7 +8,7 @@ i = i + 1;
 
 % function \in {1, 2, ?, 24}  24
 P(i).name = 'fun';
-P(i).values = num2cell(1:24);
+P(i).values = {14,17,19}; %num2cell(1:24);
 i = i + 1;
 
 % covariance function \in {SEiso, Matern3iso, Matern5iso, ARD versions}  3+3
@@ -103,4 +103,15 @@ i = i + 1;
 P(i).name = 'trainAlgorithm';
 P(i).values = {'fmincon'}; %{'minimize', 'fmincon', 'cmaes'}; %TODO: Implement
 i = i + 1;
+
+% normalizeY
+P(i).name = 'normalizeY';
+P(i).values = {true}; 
+i = i + 1;
+
+%
+P(i).name = 'transformCoordinates';
+P(i).values = {false, true};
+i = i + 1;
+
 

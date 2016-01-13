@@ -28,6 +28,8 @@ else
 	params.mse = res.err;
 	params.info = res.info;
 	params.mse_all = mat2str(res.errors);
+    params.kendall = res.kendall;
+    params.kendall_all = res.kendalls;
 end
 
 paramstr = cp_struct2str(params, '&');
@@ -38,10 +40,15 @@ numtry = 1;
 
 while sent == 0
 try
-	urlread(url);    
+	%urlread(url);    
+    if err
+        display(err_report);
+    end
 	sent = 1;
 catch e
 	if numtry < 5
+		display(['Faild to save result: ', url]);
+        display('Trying again ...');
 		pause(2^(numtry-1));
 		numtry = numtry + 1;
 	else

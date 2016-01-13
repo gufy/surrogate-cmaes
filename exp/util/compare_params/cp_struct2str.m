@@ -28,19 +28,30 @@ fields = fieldnames(struct_in);
 string_out = '';
 for J = 1:numel(fields)
     key = fields{J};
-    if isstruct(struct_in.(key))
-        value = urlencode(cp_struct2str(struct_in.(key), '='));
-    else
-        if ischar(struct_in.(key))
-            value = struct_in.(key);
-        else
-            if isa(struct_in.(key), 'function_handle')
-                value = func2str(struct_in.(key));
-            else
-                value = num2str(struct_in.(key));
+    if length(struct_in) > 1
+        value = '[';
+        for I = 1:length(struct_in)
+            if I > 1
+                value = [value ','];
             end
+            value = [value cp_struct2str(struct_in(I))];
         end
-	value = urlencode(value);
+        value = [value ']'];
+    else
+        if isstruct(struct_in.(key))
+            value = urlencode(cp_struct2str(struct_in.(key), '='));
+        else
+            if ischar(struct_in.(key))
+                value = struct_in.(key);
+            else
+                if isa(struct_in.(key), 'function_handle')
+                    value = func2str(struct_in.(key));
+                else
+                    value = num2str(struct_in.(key));
+                end
+            end
+        value = urlencode(value);
+        end
     end
     
     string_out = [string_out, key, '=', value];
