@@ -4,7 +4,7 @@ if nargin < 2
     exppath_short = '.';
 end
 
-setup_mail;
+%setup_mail;
 %sendmail('vojtech.kopal@gmail.com', 'MATLAB Batch Started', 'Computation has started.');
 
 try
@@ -14,6 +14,7 @@ try
     		params = cp_prepare_exp_params(params);
 		try
 			res{I} = cp_eval_exp_and_save(params, exppath_short);
+            pause(0.5+rand());
 		catch e
 			try
             			getReport(e)
