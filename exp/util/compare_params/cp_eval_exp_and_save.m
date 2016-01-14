@@ -29,7 +29,7 @@ else
 	params.info = res.info;
 	params.mse_all = mat2str(res.errors);
     params.kendall = res.kendall;
-    params.kendall_all = res.kendalls;
+    params.kendall_all = mat2str(res.kendalls);
 end
 
 paramstr = cp_struct2str(params, '&');
