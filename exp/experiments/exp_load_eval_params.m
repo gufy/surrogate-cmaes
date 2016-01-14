@@ -3,12 +3,12 @@ i=1;
 
 % dimension \in {5, 10, 20}  3
 P(i).name = 'dim';
-P(i).values = {5};% {5 10 20}; %{2 5 10 20};
-i = i + 1;
+P(i).values = {5 10 20}; %{2 5 10 20};
+i = i + 1;  
 
 % function \in {1, 2, ?, 24}  24
 P(i).name = 'fun';
-P(i).values = {14,17,19}; %num2cell(1:24);
+P(i).values = num2cell(1:24);
 i = i + 1;
 
 % covariance function \in {SEiso, Matern3iso, Matern5iso, ARD versions}  3+3
@@ -91,7 +91,7 @@ i = i + 1;
 
 % clustering ? ? choose only the specif. number of the training data from the training range (clustering), or use all of them (no clustering)? ? {yes, no}  2
 P(i).name = 'clustertrain';
-P(i).values = {0}; %{0, 1}; %TODO: Implement
+P(i).values = {1}; %{0, 1}; %TODO: Implement
 i = i + 1;
 
 % testing dataset from generation \in {+1, +5}  2
