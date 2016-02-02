@@ -1,0 +1,299 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>cp_publish_results</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-02-02"><meta name="DC.source" content="cp_publish_results.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">data = cp_query(struct(<span class="string">'trainrange'</span>, 2, <span class="string">'testgen'</span>, 1, <span class="string">'numtrains'</span>, 5, <span class="string">'transformCoordinates'</span>, 1));
+</pre><pre class="codeinput">covfuns = unique(data.covfun);
+funs = unique(data.fun);
+gens = unique(data.gen);
+wins = zeros(length(gens), length(funs));
+
+counter = 0;
+clear <span class="string">results</span>;
+
+<span class="keyword">for</span> F = 1:length(funs)
+    fun = funs(F);
+    idfx = data.fun == fun;
+
+    <span class="keyword">for</span> K = 1:length(gens)
+        gen = gens(K);
+        idgx = idfx &amp; (data.gen == gen);
+
+        opt_covhyp = <span class="string">''</span>;
+        opt_covfun = <span class="string">''</span>;
+        opt_mse = 2^31; <span class="comment">% huge number</span>
+
+        <span class="keyword">for</span> I = 1:length(covfuns)
+            covfun = covfuns{I};
+            idcx = idgx &amp; strcmp(data.covfun, covfun);
+            covhyps = unique(data.covhyp(idcx));
+
+            <span class="keyword">for</span> J = 1:length(covhyps)
+                covhyp = covhyps{J};
+                idhx = idcx &amp; strcmp(data.covhyp, covhyp);
+
+                x = data.fun(idhx);
+                y = data.mse(idhx);
+
+                <span class="keyword">if</span> y &lt; opt_mse
+                    opt_mse = y;
+                    opt_covfun = covfun;
+                    opt_covhyp = covhyp;
+                <span class="keyword">end</span>
+
+                <span class="comment">%[ys, id] = sort(y);</span>
+                <span class="comment">%xs = x(id);</span>
+                <span class="comment">%[ys(1:3), xs(1:3)]</span>
+                <span class="comment">%wins(gens == gen, funs == xs(1)) = wins(gens == gen, funs == xs(1)) + 1;</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        counter = counter + 1;
+        results(counter).fun = fun;
+        results(counter).gen = gen;
+        results(counter).mse = opt_mse;
+        results(counter).covhyp = opt_covhyp;
+        results(counter).covfun = opt_covfun;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+results = struct2table(results);
+</pre><pre class="codeinput">gens = unique(results.gen);
+<span class="keyword">for</span> I = 1:length(gens)
+    gen = gens(I);
+    idx = results.gen == gen;
+
+    display([<span class="string">'Results for gen='</span>, int2str(gen)]);
+    display(results(idx, :));
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">Results for gen=20
+
+ans = 
+
+    fun    gen       mse         covhyp         covfun   
+    ___    ___    __________    _________    ____________
+
+     1     20     5.7894e-10    'sn=0.5'     'SEiso'     
+     2     20         164.29    'sn=0.05'    'Matern3ard'
+     3     20     8.3483e-07    'sn=0.05'    'Matern3ard'
+     4     20     1.4182e-05    'sn=0.05'    'Matern3ard'
+     6     20       0.022567    'sn=0.05'    'Matern3ard'
+     7     20        0.22516    'sn=0.05'    'Matern3ard'
+     8     20         48.667    'sn=0.05'    'Matern3iso'
+     9     20     1.9651e-05    'sn=0.05'    'SEiso'     
+    10     20         99.289    'sn=0.05'    'Matern3ard'
+    11     20         121.84    'sn=0.5'     'Matern3ard'
+    12     20     2.1318e+09    'sn=0.05'    'Matern3ard'
+    13     20     9.4751e-06    'sn=0.05'    'Matern3ard'
+    14     20     0.00014053    'sn=0.05'    'Matern3ard'
+    15     20        0.19627    'sn=0.05'    'Matern3iso'
+    16     20     5.3356e-06    'sn=0.05'    'Matern3ard'
+    17     20     5.1454e-09    'sn=0.25'    'Matern3ard'
+    18     20       0.033484    'sn=0.25'    'Matern3iso'
+    19     20     1.0736e-07    'sn=0.05'    'Matern3ard'
+    20     20     0.00019946    'sn=0.05'    'Matern3ard'
+    21     20      1.609e-05    'sn=0.25'    'Matern5ard'
+    22     20     2.9323e-07    'sn=0.05'    'Matern3ard'
+    23     20         1.6935    'sn=0.05'    'Matern3ard'
+    24     20      1.922e-06    'sn=0.25'    'Matern5iso'
+
+Results for gen=40
+
+ans = 
+
+    fun    gen       mse         covhyp         covfun   
+    ___    ___    __________    _________    ____________
+
+     1     40      1.087e-12    'sn=0.05'    'Matern3ard'
+     2     40       0.057389    'sn=0.05'    'SEiso'     
+     3     40     3.5788e-07    'sn=0.05'    'Matern3ard'
+     4     40        0.18307    'sn=0.05'    'SEiso'     
+     6     40     0.00047364    'sn=0.05'    'Matern3ard'
+     7     40       0.013906    'sn=0.05'    'Matern3ard'
+     8     40     1.1749e-07    'sn=0.05'    'Matern3ard'
+     9     40     2.3095e-09    'sn=0.05'    'Matern3ard'
+    10     40        0.68025    'sn=0.05'    'SEiso'     
+    11     40     5.1435e+05    'sn=0.5'     'Matern3ard'
+    12     40     2.3465e+05    'sn=0.05'    'Matern3ard'
+    13     40     1.4349e-07    'sn=0.05'    'Matern3ard'
+    14     40     1.8627e-06    'sn=0.5'     'Matern3iso'
+    15     40     8.3417e-07    'sn=0.05'    'Matern3iso'
+    16     40     2.1393e-06    'sn=0.05'    'Matern3ard'
+    17     40     0.00025831    'sn=0.05'    'Matern3iso'
+    18     40     5.8392e-09    'sn=0.05'    'SEiso'     
+    19     40      0.0043782    'sn=0.05'    'Matern3ard'
+    20     40      4.874e-09    'sn=0.1'     'Matern3ard'
+    21     40     1.9972e-10    'sn=0.05'    'SEard'     
+    22     40     6.0131e-11    'sn=0.05'    'Matern3iso'
+    23     40        0.22249    'sn=0.1'     'Matern3ard'
+    24     40     1.1272e-06    'sn=0.05'    'Matern3ard'
+
+Results for gen=100
+
+ans = 
+
+    fun    gen       mse         covhyp         covfun   
+    ___    ___    __________    _________    ____________
+
+     1     100    2.1475e+09    ''           ''          
+     2     100        2.5005    'sn=0.05'    'Matern3ard'
+     3     100       0.49393    'sn=1'       'Matern3ard'
+     4     100    2.2242e-07    'sn=0.05'    'Matern3ard'
+     6     100    1.7145e-07    'sn=0.05'    'SEiso'     
+     7     100    2.1475e+09    ''           ''          
+     8     100    0.00010734    'sn=0.05'    'Matern3ard'
+     9     100    1.8165e-09    'sn=0.05'    'Matern3ard'
+    10     100    8.2153e-05    'sn=0.05'    'SEiso'     
+    11     100    1.4788e-06    'sn=0.05'    'Matern3ard'
+    12     100    4.1857e-12    'sn=0.05'    'Matern3ard'
+    13     100    4.1644e-09    'sn=0.05'    'Matern3ard'
+    14     100    1.9106e-10    'sn=0.05'    'Matern3ard'
+    15     100    5.8242e-08    'sn=0.05'    'Matern3ard'
+    16     100    6.8985e-07    'sn=0.25'    'Matern5ard'
+    17     100    2.8415e-13    'sn=0.05'    'Matern3ard'
+    18     100    1.3719e-11    'sn=0.1'     'Matern3iso'
+    19     100     0.0023153    'sn=1'       'Matern3ard'
+    20     100    8.1491e-15    'sn=0.05'    'Matern3iso'
+    21     100    2.1475e+09    ''           ''          
+    22     100    4.0696e-17    'sn=1'       'Matern3ard'
+    23     100       0.25115    'sn=0.1'     'SEard'     
+    24     100    8.2629e-07    'sn=0.1'     'Matern5iso'
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+data = cp_query(struct('trainrange', 2, 'testgen', 1, 'numtrains', 5, 'transformCoordinates', 1));
+
+%%
+
+covfuns = unique(data.covfun);
+funs = unique(data.fun);
+gens = unique(data.gen);
+wins = zeros(length(gens), length(funs));
+
+counter = 0;
+clear results;
+
+for F = 1:length(funs)
+    fun = funs(F);
+    idfx = data.fun == fun;
+    
+    for K = 1:length(gens)
+        gen = gens(K);
+        idgx = idfx & (data.gen == gen);
+        
+        opt_covhyp = '';
+        opt_covfun = '';
+        opt_mse = 2^31; % huge number
+        
+        for I = 1:length(covfuns)
+            covfun = covfuns{I};
+            idcx = idgx & strcmp(data.covfun, covfun);
+            covhyps = unique(data.covhyp(idcx));
+            
+            for J = 1:length(covhyps)
+                covhyp = covhyps{J};
+                idhx = idcx & strcmp(data.covhyp, covhyp);
+
+                x = data.fun(idhx);
+                y = data.mse(idhx);
+
+                if y < opt_mse
+                    opt_mse = y;
+                    opt_covfun = covfun;
+                    opt_covhyp = covhyp;
+                end
+                
+                %[ys, id] = sort(y);
+                %xs = x(id);
+                %[ys(1:3), xs(1:3)]
+                %wins(gens == gen, funs == xs(1)) = wins(gens == gen, funs == xs(1)) + 1;
+            end
+        end
+        
+        counter = counter + 1;
+        results(counter).fun = fun;
+        results(counter).gen = gen;
+        results(counter).mse = opt_mse;
+        results(counter).covhyp = opt_covhyp;
+        results(counter).covfun = opt_covfun;
+    end
+end
+
+results = struct2table(results);
+
+%%
+
+gens = unique(results.gen);
+for I = 1:length(gens)
+    gen = gens(I);
+    idx = results.gen == gen;
+    
+    display(['Results for gen=', int2str(gen)]);
+    display(results(idx, :));
+end
+##### SOURCE END #####
+--></body></html>
