@@ -18,47 +18,63 @@ TrainNs = zeros(1,30);
 TestNs = zeros(1,30);
 
 for ExpId = 1:30
-    CmaesOut = cmaes_out{ExpId};
-    G = params.gen;
-    NumTrain = params.numtrains * params.dim;
-    
-    if G > length(CmaesOut.generationStarts)
-        % error, nemame dost generaci
-        info = 'Too Fast';
-        Errs(ExpId) = NaN;
-    else
-        Arch = cp_init_archive(CmaesOut);
-        TrainRange = params.trainrange * CmaesOut.sigmas(G)^2;
-        M = CmaesOut.means(:, G);
-    
-        [X, Y] = Arch.getDataNearPoint(NumTrain, ...
-            CmaesOut.means(:, G)', TrainRange, CmaesOut.sigmas(G), CmaesOut.BDs{G}, ...
-            1:G );
+    try
+        CmaesOut = cmaes_out{ExpId};
+        G = params.gen;
+        NumTrain = params.numtrains * params.dim;
 
-        X = X - repmat(mean(X,1)', 1, length(Y))';
-        model = GpModel(params, zeros(1, params.dim));
-        
-        [Xtest, Dtest] = Arch.getDataFromGenerations(G + params.testgen);
-        
-        if length(Dtest) == 0
-            error(['Cannot test against future generation. Loaded empty set from archive for ', cp_struct2str(params)]);
+        if G > length(CmaesOut.generationStarts)
+            % error, nemame dost generaci
+            info = 'Too Fast';
+            Errs(ExpId) = NaN;
+        else
+            Arch = cp_init_archive(CmaesOut);
+            TrainRange = params.trainrange * CmaesOut.sigmas(G)^2;
+            M = CmaesOut.means(:, G);
+
+            [X, Y] = Arch.getDataNearPoint(NumTrain, ...
+                CmaesOut.means(:, G)', TrainRange, CmaesOut.sigmas(G), CmaesOut.BDs{G}, ...
+                1:G );
+
+            if isempty(Y)
+                error(['Cannot train against empty set. Loaded empty set from archive for ', cp_struct2str(params)]);
+            end
+
+            X = X - repmat(mean(X,1)', 1, length(Y))';
+            model = GpModel(params, zeros(1, params.dim));
+
+            [Xtest, Dtest] = Arch.getDataFromGenerations(G + params.testgen);
+
+            if isempty(Dtest)
+                error(['Cannot test against future generation. Loaded empty set from archive for ', cp_struct2str(params)]);
+            end
+
+            model = model.train(X, Y, CmaesOut.means(:, G)', G, CmaesOut.sigmas(G), CmaesOut.BDs{G});
+            Ytest = model.predict(Xtest);
+
+            kendall = corr(Dtest, Ytest, 'type', 'Kendall');
+            Err = (1/length(Dtest))*(sum((Dtest - Ytest).^2));
+            Errs(ExpId) = Err;
+            Kendalls(ExpId) = kendall;
+            ErrAcc = ErrAcc + Err;
+            KendallAcc = KendallAcc + kendall;
+            TrainN(ExpId) = length(Y);
+            TestN(ExpId) = length(Ytest);
         end
+    catch e
         
-        model = model.train(X, Y, CmaesOut.means(:, G)', G, CmaesOut.sigmas(G), CmaesOut.BDs{G});
-        Ytest = model.predict(Xtest);
-
-        kendall = corr(Dtest, Ytest, 'type', 'Kendall');
-        Err = (1/length(Dtest))*(sum((Dtest - Ytest).^2));
-        Errs(ExpId) = Err;
-        Kendalls(ExpId) = kendall;
-        ErrAcc = ErrAcc + Err;
-        KendallAcc = KendallAcc + kendall;
-        TrainN(ExpId) = length(Y);
-        TestN(ExpId) = length(Ytest);
     end
 end
 
-res = struct('err', ErrAcc/30, 'errors', Errs, 'kendall', KendallAcc/30, 'kendalls', Kendalls, 'info', info, ...
+NumSucc = sum(Errs > 0);
+AvgErr = 0;
+AvgKendall = 0;
+if ErrAcc > 0
+    AvgErr = ErrAcc/NumSucc;
+    AvgKendall = KendallAcc/NumSucc;
+end
+
+res = struct('err', AvgErr, 'errors', Errs, 'kendall', AvgKendall, 'kendalls', Kendalls, 'info', info, ...
             'test_n', TestN, 'train_n', TrainN);
 
 end
