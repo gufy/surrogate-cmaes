@@ -14,8 +14,8 @@ ErrAcc = 0;
 Errs = zeros(1,30);
 KendallAcc = 0;
 Kendalls = zeros(1,30);
-TrainNs = zeros(1,30);
-TestNs = zeros(1,30);
+TrainN = zeros(1,30);
+TestN = zeros(1,30);
 
 for ExpId = 1:30
     try
