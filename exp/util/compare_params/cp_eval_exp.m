@@ -14,6 +14,8 @@ ErrAcc = 0;
 Errs = zeros(1,30);
 KendallAcc = 0;
 Kendalls = zeros(1,30);
+TrainNs = zeros(1,30);
+TestNs = zeros(1,30);
 
 for ExpId = 1:30
     CmaesOut = cmaes_out{ExpId};
@@ -42,7 +44,7 @@ for ExpId = 1:30
             error(['Cannot test against future generation. Loaded empty set from archive for ', cp_struct2str(params)]);
         end
         
-        model = model.train(Xtest, Dtest, CmaesOut.means(:, G)', G, CmaesOut.sigmas(G), CmaesOut.BDs{G});
+        model = model.train(X, Y, CmaesOut.means(:, G)', G, CmaesOut.sigmas(G), CmaesOut.BDs{G});
         Ytest = model.predict(Xtest);
 
         kendall = corr(Dtest, Ytest, 'type', 'Kendall');
@@ -51,10 +53,13 @@ for ExpId = 1:30
         Kendalls(ExpId) = kendall;
         ErrAcc = ErrAcc + Err;
         KendallAcc = KendallAcc + kendall;
+        TrainN(ExpId) = length(Y);
+        TestN(ExpId) = length(Ytest);
     end
 end
 
-res = struct('err', ErrAcc/30, 'errors', Errs, 'kendall', KendallAcc/30, 'kendalls', Kendalls, 'info', info);
+res = struct('err', ErrAcc/30, 'errors', Errs, 'kendall', KendallAcc/30, 'kendalls', Kendalls, 'info', info, ...
+            'test_n', TestN, 'train_n', TrainN);
 
 end
 
