@@ -53,6 +53,11 @@ for ExpId = 1:30
             Ytest = model.predict(Xtest);
 
             kendall = corr(Dtest, Ytest, 'type', 'Kendall');
+            
+            if isnan(kendall)
+                kendall = 0;
+            end
+            
             Err = (1/length(Dtest))*(sum((Dtest - Ytest).^2));
             Errs(ExpId) = Err;
             Kendalls(ExpId) = kendall;
