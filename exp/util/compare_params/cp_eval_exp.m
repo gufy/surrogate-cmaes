@@ -11,7 +11,7 @@ load([exppath_short, '/exp_data/', d.name]);
 
 info = '';
 ErrAcc = 0;
-Errs = zeros(1,30);
+Errs = ones(1,30) * Inf;
 KendallAcc = 0;
 Kendalls = zeros(1,30);
 TrainN = zeros(1,30);
@@ -71,12 +71,12 @@ for ExpId = 1:30
     end
 end
 
-NumSucc = sum(Errs > 0);
+SuccIds = Errs < Inf;
 AvgErr = 0;
 AvgKendall = 0;
 if ErrAcc > 0
-    AvgErr = ErrAcc/NumSucc;
-    AvgKendall = KendallAcc/NumSucc;
+    AvgErr = sum(Errs(SuccIds))/sum(SuccIds);
+    AvgKendall = sum(Kendalls(SuccIds))/sum(SuccIds);
 end
 
 res = struct('err', AvgErr, 'errors', Errs, 'kendall', AvgKendall, 'kendalls', Kendalls, 'info', info, ...

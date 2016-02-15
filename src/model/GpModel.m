@@ -118,7 +118,11 @@ classdef GpModel < Model
       if (obj.options.normalizeY)
         obj.shiftY = mean(y);
         obj.stdY  = std(y);
-        yTrain = (y - obj.shiftY) / obj.stdY;
+        if obj.stdY > 0
+            yTrain = (y - obj.shiftY) / obj.stdY;
+        else
+            yTrain = y .* 0;
+        end
       else
         obj.shiftY = 0;
         obj.stdY  = 1;
@@ -188,7 +192,10 @@ classdef GpModel < Model
         % apply the shift if the model is already shifted
         XWithShift = X - repmat(obj.shiftMean, size(X,1), 1);
         % prepare the training set (if was normalized for training)
-        yTrain = (obj.dataset.y - obj.shiftY) / obj.stdY;
+        yTrain = (obj.dataset.y - obj.shiftY);
+        if (obj.stdY > 0) 
+            yTrain = yTrain / obj.stdY;
+        end
         % calculate GP models' prediction in X
         [y, dev] = gp(obj.hyp, obj.infFcn, obj.meanFcn, obj.covFcn, obj.likFcn, obj.dataset.X, yTrain, XWithShift);
         % un-normalize in the f-space (if there is any)
@@ -371,14 +378,24 @@ classdef GpModel < Model
       %
       lb_hyp.cov = -2 * ones(size(obj.hyp.cov));
       ub_hyp.cov = 25 * ones(size(obj.hyp.cov));
+      
       lb_hyp.lik = log(1e-6);
       ub_hyp.lik = log(10);
       % set bounds for mean hyperparameter
       if (~isequal(obj.meanFcn, @meanZero))
         minY = min(yTrain);
         maxY = max(yTrain);
-        lb_hyp.mean = minY - 2*(maxY - minY);
-        ub_hyp.mean = minY + 2*(maxY - minY);
+        lb_hyp.mean = minY - 2*(maxY - minY) - 2e-8;
+        ub_hyp.mean = minY + 2*(maxY - minY) + 2e-8;
+        
+        % Warning: Derivative finite-differencing step was artificially reduced to be within bound constraints. This may adversely affect convergence.
+        % Increasing distance between bound constraints, in dimension 8, to be at least 2e-08 may improve results. 
+
+        if sum(ub_hyp.mean - lb_hyp.mean < 2e-08) > 0
+          ids = ub_hyp.mean - lb_hyp.mean < 2e-08;
+          ub_hyp.mean(ids) = lb_hyp.mean(ids) + 2e-08;
+        end
+        
       end
     end
   end

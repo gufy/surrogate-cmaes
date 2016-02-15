@@ -14,54 +14,60 @@ i = i + 1;
 % covariance function \in {SEiso, Matern3iso, Matern5iso, ARD versions}  3+3
 P(i).name = 'covfun';
 P(i).values = {
-    struct('name', 'SEiso', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
-    struct('name', 'Matern3iso', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
-    struct('name', 'Matern5iso', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
-    struct('name', 'SEard', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
-    struct('name', 'Matern3ard', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
-    struct('name', 'Matern5ard', 'params', {
-        struct('sn', 0.05)
-        struct('sn', 0.1)
-        struct('sn', 0.25)
-        struct('sn', 0.5)
-        struct('sn', 1)
-    })
+    struct('name', 'covSEiso', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 0)
+    struct('name', '{@covMaterniso, 3}', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 0)
+    struct('name', '{@covMaterniso, 5}', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 0)
+    struct('name', 'covSEard', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 1)
+    struct('name', '{@covMaternard, 3}', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 1)
+    struct('name', '{@covMaternard, 5}', 'params', {
+        struct('lik', log(0.01), 'cov', log([0.5; 2]))
+        struct('lik', log(0.05), 'cov', log([0.5; 2]))
+        struct('lik', log(0.1), 'cov', log([0.5; 2]))
+        struct('lik', log(0.25), 'cov', log([0.5; 2]))
+        struct('lik', log(0.5), 'cov', log([0.5; 2]))
+        struct('lik', log(1), 'cov', log([0.5; 2]))
+    }, 'isARD', 1)
 };
 i = i + 1;
 
 % starting values of hyperparameters ? 5 different value-set for each cov. function  5
 P(i).name = 'covhyp';
-P(i).values = {1 2 3 4 5};
+P(i).values = {1 2 3 4 5 6};
 i = i + 1;
 
 % lower/upper bounds on hyperparameters ? how to set this?  1
