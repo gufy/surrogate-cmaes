@@ -47,10 +47,10 @@ for J = 1:numel(fields)
                 if isa(struct_in.(key), 'function_handle')
                     value = func2str(struct_in.(key));
                 else
-                    value = num2str(struct_in.(key));
+                    value = mat2str(struct_in.(key));
                 end
             end
-        value = urlencode(value);
+            value = urlencode(value);
         end
     end
     
