@@ -112,12 +112,12 @@ i = i + 1;
 
 % normalizeY
 P(i).name = 'normalizeY';
-P(i).values = {true}; 
+P(i).values = {1}; 
 i = i + 1;
 
 %
 P(i).name = 'transformCoordinates';
-P(i).values = {false, true};
+P(i).values = {0, 1};
 i = i + 1;
 
 
