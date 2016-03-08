@@ -16,6 +16,7 @@ KendallAcc = 0;
 Kendalls = zeros(1,30);
 TrainN = zeros(1,30);
 TestN = zeros(1,30);
+ContstantModel = zeros(1,30);
 
 for ExpId = 1:30
     try
@@ -52,10 +53,17 @@ for ExpId = 1:30
             model = model.train(X, Y, CmaesOut.means(:, G)', G, CmaesOut.sigmas(G), CmaesOut.BDs{G});
             Ytest = model.predict(Xtest);
 
+            if std(Ytest) == 0
+                % Error: constant model
+                ContstantModel(ExpId) = 1;
+            end
+            
+            % TODO: Testuj jen nekonstatni vektor! Model je zly.
             kendall = corr(Dtest, Ytest, 'type', 'Kendall');
             
             if isnan(kendall)
-                kendall = 0;
+                kendall = -1; % TODO: Konstatni model? Mozna pouzit isTrained() (az se zapne overovani konstantnosti)
+            
             end
             
             Err = (1/length(Dtest))*(sum((Dtest - Ytest).^2));
@@ -80,7 +88,7 @@ if ErrAcc > 0
 end
 
 res = struct('err', AvgErr, 'errors', Errs, 'kendall', AvgKendall, 'kendalls', Kendalls, 'info', info, ...
-            'test_n', TestN, 'train_n', TrainN);
+            'test_n', TestN, 'train_n', TrainN, 'constant_model', ConstantModel, 'constant_model_num', sum(ConstantModel));
 
 end
 

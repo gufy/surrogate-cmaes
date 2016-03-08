@@ -32,6 +32,9 @@ else
     params.kendall_all = mat2str(res.kendalls);
 end
 
+params.constant_model = res.constant_model;
+params.constant_model_num = res.constant_model_num;
+
 paramstr = cp_struct2str(params, '&');
 
 url = ['http://vojtechkopal.cz/regressions/save.php?', paramstr];
