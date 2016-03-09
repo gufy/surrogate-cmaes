@@ -30,10 +30,10 @@ else
 	params.mse_all = mat2str(res.errors);
     params.kendall = res.kendall;
     params.kendall_all = mat2str(res.kendalls);
+    params.constant_model = res.constant_model;
+    params.constant_model_num = res.constant_model_num;
 end
 
-params.constant_model = res.constant_model;
-params.constant_model_num = res.constant_model_num;
 
 paramstr = cp_struct2str(params, '&');
 
@@ -43,7 +43,7 @@ numtry = 1;
 
 while sent == 0
 try
-	%urlread(url);    
+	urlread(url);    
     if err
         display(err_report);
     end

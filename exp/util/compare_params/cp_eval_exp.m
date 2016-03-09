@@ -16,7 +16,7 @@ KendallAcc = 0;
 Kendalls = zeros(1,30);
 TrainN = zeros(1,30);
 TestN = zeros(1,30);
-ContstantModel = zeros(1,30);
+ConstantModel = zeros(1,30);
 
 for ExpId = 1:30
     try
@@ -55,7 +55,7 @@ for ExpId = 1:30
 
             if std(Ytest) == 0
                 % Error: constant model
-                ContstantModel(ExpId) = 1;
+                ContstantM  odel(ExpId) = 1;
             end
             
             % TODO: Testuj jen nekonstatni vektor! Model je zly.
