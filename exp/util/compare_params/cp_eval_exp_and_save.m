@@ -32,6 +32,7 @@ else
     params.kendall_all = mat2str(res.kendalls);
     params.constant_model = res.constant_model;
     params.constant_model_num = res.constant_model_num;
+    params.empty_archive = res.empty_archive;
 end
 
 
