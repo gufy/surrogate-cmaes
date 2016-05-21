@@ -49,29 +49,31 @@ else
   # defined in exp/bash_settings.sh: RUNDIR="$SCRATCHDIR/surrogate-cmaes"
   mkdir -p "$RUNDIR"
   cd "$RUNDIR"
+  echo "====================="
+  echo "Unpacking the sources and the previously compiled binary..."
   tar -xf "$DEPLOY_FILE"
 fi
 
 # cd "$EXPPATH_SHORT/.."
 # ulimit -t unlimited
 
-module add matlab
-
-echo "====================="
-echo "Compiling..."
-lasthome="$HOME"
-HOME="$RUNDIR"
-make
-
 echo "====================="
 echo -n "Current dir:    "; pwd
+echo -n "Current node:   "; cat $PBS_NODEFILE
 echo    '$HOME =        ' $HOME
+echo    '$MCR_CACHE_ROOT = ' $MCR_CACHE_ROOT
 echo    "Will be called:" $MATLAB_BINARY_CALL "$EXPID" "$EXPPATH_SHORT" $ID
 echo "====================="
 
 ######### CALL #########
 #
 $MATLAB_BINARY_CALL "$EXPID" "$EXPPATH_SHORT" $ID
+#
+# # this is for debug purposes: disable exit on error and direct call matlab
+#
+# module add matlab
+# sed -i 's/^  try/  % try/;s/^  catch err/  return;\n  % catch err/;/ catch err/,/^end/s/^  end/  % end/' exp/bbob_test_01.m 
+# matlab -nodisplay -r "dbstop if error; metacentrum_task_matlab('$EXPID','"$EXPPATH_SHORT"', $ID)";
 #
 ########################
 

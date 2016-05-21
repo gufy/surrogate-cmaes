@@ -1,14 +1,23 @@
-function [fitness_raw, arx, arxvalid, arz, counteval] = sampleCmaes(xmean, sigma, lambda, BD, diagD, fitfun, opts, varargin)
+function [fitness_raw, arx, arxvalid, arz, counteval_out] = sampleCmaes(cmaesState, opts, lambda, counteval_in, varargin)
 
   % TODO: rewrite the meaning of counteval as the number of _NEW_ original
   %       evaluations made during this specific call
+  
+  % CMA-ES state variables
+  xmean = cmaesState.xmean;
+  sigma = cmaesState.sigma;
+  BD = cmaesState.BD;
+  diagD = cmaesState.diagD;
+  fitfun = cmaesState.fitfun_handle;
+  % Note: lambda is a variable parameter defining # of point to sample,
+  % it is not always:
+  %   lambda == cmaesState.lambda
 
   % CMA-ES sampling options
   noiseReevals = opts.noiseReevals;
   bnd.isactive = opts.isBoundActive;
   lbounds = opts.lbounds;
   ubounds = opts.ubounds;
-  counteval = opts.counteval;
   flgEvalParallel = opts.flgEvalParallel;
   flgDiagonalOnly = opts.flgDiagonalOnly;
   noiseHandling = opts.noiseHandling;
@@ -21,6 +30,7 @@ function [fitness_raw, arx, arxvalid, arz, counteval] = sampleCmaes(xmean, sigma
  
   fitness_raw = NaN(1, lambda + noiseReevals);
   countevalNaN = 0;
+  newCounteval = 0;
 
   % parallel evaluation
   if flgEvalParallel
@@ -62,7 +72,7 @@ function [fitness_raw, arx, arxvalid, arz, counteval] = sampleCmaes(xmean, sigma
       % fitness function. arx and arxvalid should not be changed.
       fitness_raw = feval(fitfun, arxvalid, varargin{:});
       countevalNaN = countevalNaN + sum(isnan(fitness_raw));
-      counteval = counteval + sum(~isnan(fitness_raw));
+      newCounteval = sum(~isnan(fitness_raw));
   end
 
   % non-parallel evaluation and remaining NaN-values
@@ -111,9 +121,11 @@ function [fitness_raw, arx, arxvalid, arz, counteval] = sampleCmaes(xmean, sigma
       if mod(tries, 100) == 0
 	warning([num2str(tries) ...
                  ' NaN objective function values at evaluation ' ...
-                 num2str(counteval)]);
+                 num2str(counteval_in + newCounteval)]);
       end
     end
-    counteval = counteval + 1; % retries due to NaN are not counted
+    newCounteval = newCounteval + 1; % retries due to NaN are not counted
   end
+
+  counteval_out = counteval_in + newCounteval;
 end
