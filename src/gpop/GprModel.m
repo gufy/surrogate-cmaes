@@ -62,6 +62,7 @@ classdef GprModel < Model
         obj.cov.fcn = myeval(obj.cov.fcn);
       end
 
+      obj.predictionType = defopts(modelOptions, 'predictionType', 'fValues');
       obj.options.normalizeY = defopts(obj.options, 'normalizeY', true);
       obj.options.normalizeX = defopts(obj.options, 'normalizeX', true);
       obj.transformCoordinates = defopts(modelOptions, 'transformCoordinates', true);
@@ -69,6 +70,7 @@ classdef GprModel < Model
       obj.logModel = 0;
       obj.nErrors = 0;
       obj.fitErr = 0;
+      
     end
 
     function nData = getNTrainData(obj)
