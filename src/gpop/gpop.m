@@ -1,4 +1,4 @@
-function [xbest, fmin, counteval, stopflag, y_eval] = gpop(fitfun, xstart, gpopOpts, cmOpts, modelOpts)
+function [xbest, fmin, counteval, stopflag, y_eval, model] = gpop(fitfun, xstart, gpopOpts, cmOpts, modelOpts)
 % Implementation of Gaussian Process Optimization Procedure.
 %
 % Procedure uses a Gaussian process as a surrogate model
