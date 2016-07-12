@@ -100,7 +100,7 @@ function handle = relativeFValuesPlot(data, varargin)
                             'Statistic', statistic, ...
                             'SuppWarning', true), ...
                        data, 'UniformOutput', false);
-                          
+  
   % minimal value cannot be lower than minValue
   for D = 1:numOfData
     for f = 1:length(funcIds)

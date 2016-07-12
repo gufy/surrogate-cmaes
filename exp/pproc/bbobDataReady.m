@@ -42,7 +42,9 @@ function data = bbobDataReady(datapath, funcSet)
       usefulFiles = false(1, nData);
       filename = cell(1, nData);
       for dat = 1:nData
-        filename{dat} = fullfile(datapath{dat}, ['data_f', num2str(f)], ['bbobexp_f', num2str(f), '_DIM', num2str(d), '.dat']);
+        filename{dat} = fullfile(datapath{dat}, ...
+            ['data_f', num2str(f)], ...
+            ['bbobexp_f', num2str(f), '_DIM', num2str(d), '.dat']);
         if exist(filename{dat}, 'file')
           usefulFiles(dat) = true;
         end

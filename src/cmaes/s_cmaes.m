@@ -820,10 +820,22 @@ while isempty(stopflag)
     [fitness.raw, arx, arxvalid, arz, counteval] = sampleCmaes(cmaesState, sampleOpts, lambda, counteval, varargin{:});
     surrogateStats = NaN(1, 2);
   else
+      
     % hand over the control to surrogateManager()
     surrogateOpts.sampleOpts = sampleOpts;
-    [fitness.raw, arx, arxvalid, arz, counteval, surrogateStats, lambda] = surrogateManager(cmaesState, surrogateOpts, sampleOpts, counteval, varargin{:});
-    popsize = lambda;
+    
+    if isfield(surrogateOpts, 'warmup') && surrogateOpts.warmup.numGenerations > 0
+    % use custom fitfun for a while
+        %display(['#*#*#*# Warming up phase: #', num2str(surrogateOpts.warmup.numGenerations)]);
+        cmaesState.fitfun_handle = surrogateOpts.warmup.fun;
+        [fitness.raw, arx, arxvalid, arz, counteval] = sampleCmaes(cmaesState, sampleOpts, lambda, counteval, varargin{:});
+        surrogateStats = NaN(1, 2);
+        surrogateOpts.warmup.numGenerations = surrogateOpts.warmup.numGenerations - 1;
+    else      
+        %display(['#*#*#*# Surrogate phase']);
+        [fitness.raw, arx, arxvalid, arz, counteval, surrogateStats, lambda] = surrogateManager(cmaesState, surrogateOpts, sampleOpts, counteval, varargin{:});
+        popsize = lambda;
+    end
   end
   
   % Surrogate CMA-ES end
