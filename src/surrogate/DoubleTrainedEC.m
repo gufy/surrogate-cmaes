@@ -43,9 +43,10 @@ classdef DoubleTrainedEC < EvolutionControl
       
       minTrainSize = obj.model.getNTrainData();
 
+      trainRange = myeval(surrogateOpts.evoControlTrainRange);
       nArchivePoints = myeval(surrogateOpts.evoControlTrainNArchivePoints);
       [xTrain, yTrain] = archive.getDataNearPoint(nArchivePoints, ...
-          xmean', surrogateOpts.evoControlTrainRange, sigma, BD);
+          xmean', trainRange, sigma, BD);
       
       [fitness_raw, arx, arxvalid, arz, archive, counteval, xTrain, yTrain] = ...
         presample(minTrainSize, cmaesState, surrogateOpts, sampleOpts, archive, counteval, xTrain, yTrain, varargin{:});
