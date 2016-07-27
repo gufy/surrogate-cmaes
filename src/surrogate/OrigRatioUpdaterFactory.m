@@ -4,6 +4,8 @@ classdef OrigRatioUpdaterFactory
       switch lower(surrogateOpts.updaterType)
         case 'rmse'
           obj = OrigRatioUpdaterRMSE(surrogateOpts.updaterParams);
+        case 'kendall'
+          obj = OrigRatioUpdaterKendall(surrogateOpts.updaterParams);
         otherwise
           % including surrogateOpts.updaterType == 'constant'
           %
