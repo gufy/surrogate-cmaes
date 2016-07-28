@@ -43,7 +43,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       
       % obj.lastRatio is initialized as 'startRatio' parameter in the
       % constructor
-      newRatio = obj.lastRatio + obj.updateRate * (trend - obj.logKendallRatioTreshold);
+      newRatio = obj.lastRatio + obj.updateRate * ( -1 * trend);
       newRatio = min(max(newRatio, obj.minRatio), obj.maxRatio);
       
       obj.lastRatio = newRatio;
@@ -60,14 +60,11 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % starting value of ratio for initial generations
       obj.lastRatio = defopts(obj.parsedParams, 'startRatio', (obj.maxRatio - obj.minRatio)/2);
       % how much is the lastRatio affected by the weighted Kendall trend
-      obj.updateRate = defopts(obj.parsedParams, 'updateRate', (obj.maxRatio - obj.minRatio)/2);
+      obj.updateRate = defopts(obj.parsedParams, 'updateRate', 0.45);
       % weights for the weighted sum of the log Kendall ratios
       obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.5, 0.3, 0.2]);
       % normalize weights
       obj.logKendallWeights = obj.logKendallWeights / sum(obj.logKendallWeights);
-      % minimal value of log Kendall ratio which starts to increase newRatio
-      % (update term in (eqn. 1) is positive)
-      obj.logKendallRatioTreshold = defopts(obj.parsedParams, 'logKendallRatioTreshold', -0.1);
       obj.kendall = [];
       obj.lastUpdateGeneration = 0;
     end
@@ -106,16 +103,17 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       assert(length(localKendall)-1 == nWeights, 'DEBUG assertion failed: length of Kendall ~= nWeights + 1');
       
       % replace zeros for division
-      localKendall(localKendall < eps) = 100*eps;
+      localKendall(abs(localKendall) < eps) = 100*eps*sign(localKendall(abs(localKendall) < eps));
+      localKendall(localKendall == 0) = 100*eps;
       
-      ratios = log(localKendall(2:end) ./ localKendall(1:end-1));
+      ratios = localKendall(2:end) - localKendall(1:end-1);
       
       value = sum(obj.logKendallWeights(1:nWeights) .* ratios(end:-1:1));
     end
     
     function value = getLastRatio(obj, countiter)
       if countiter > obj.lastUpdateGeneration + 1
-        obj.update([], [], [], [], countiter)
+        obj.update([], [], [], [], countiter);
       end
       value = obj.lastRatio;
     end

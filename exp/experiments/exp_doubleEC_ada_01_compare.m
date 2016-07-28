@@ -1,5 +1,5 @@
-exp_id = 'exp_doubleEC_ada_01_compare';
-exp_description = 'Surrogate CMA-ES model using double-trained EC with sd2 criterion and GPs with default population, and restrictedParam values 0.05, 0.4; 2, 3, 5, 10D; adaptive trainrange and numtrains based on GP experiments; adaptive origRatio based on rmse with default params and/or constant origRatio';
+exp_id = 'exp_doubleEC_ada_01_kendall';
+exp_description = 'Surrogate CMA-ES model using double-trained EC with sd2 criterion and GPs with default population, and restrictedParam values 0.05, 0.4; 2, 3, 5, 10D; adaptive trainrange and numtrains based on GP experiments; adaptive origRatio based on kendall with default params and/or constant origRatio';
 
 % BBOB/COCO framework settings
 
@@ -13,6 +13,13 @@ bbobParams = { ...
 
 % Surrogate manager parameters
 
+%'evoControlTrainRange', { 'max(2, ceil(0.6199 + 0.1393 * dim + 0.0809 * countiter - 0.0072 * dim * countiter + 0.0004 * countiter * countiter))' }, ...               % will be multip. by sigma
+%'evoControlTrainNArchivePoints', { 'max(5, ceil(-2.0468 + 0.0663 * dim + 0.1797 * countiter))' },... % will be myeval()'ed, 'nRequired', 'nEvaluated', 'lambda', 'dim' can be used
+
+%'evoControlTrainRange', { 10 }, ...               % will be multip. by sigma
+%'evoControlTrainNArchivePoints', { '15*dim' },... % will be myeval()'ed, 'nRequired', 'nEvaluated', 'lambda', 'dim' can be used
+  
+
 surrogateParams = { ...
   'evoControl',         { 'doubletrained' }, ...    % 'none', 'individual', 'generation', 'restricted'
   'modelType',          { 'gp' }, ...               % 'gp', 'rf', 'bbob'
@@ -20,13 +27,13 @@ surrogateParams = { ...
   'evoControlIndividualExtension', { [] }, ...      % will be multip. by lambda
   'evoControlBestFromExtension', { [] }, ...        % ratio of expanded popul.
   'evoControlTrainRange', { 'max(2, ceil(0.6199 + 0.1393 * dim + 0.0809 * countiter - 0.0072 * dim * countiter + 0.0004 * countiter * countiter))' }, ...               % will be multip. by sigma
-  'evoControlTrainNArchivePoints', { 'max(5, ceil(-2.0468 + 0.0663 * dim + 0.1797 * countiter))' },... % will be myeval()'ed, 'nRequired', 'nEvaluated', 'lambda', 'dim' can be used
+  'evoControlTrainNArchivePoints', { 'max(5*dim, ceil(-2.0468 + 0.0663 * dim + 0.1797 * countiter))' },... % will be myeval()'ed, 'nRequired', 'nEvaluated', 'lambda', 'dim' can be used
   'evoControlSampleRange', { 1 }, ...               % will be multip. by sigma
   'evoControlOrigGenerations', { [] }, ...
   'evoControlModelGenerations', { [] }, ...
   'evoControlValidatePoints', { [] }, ...
   'evoControlRestrictedParam', { 0.05, 0.4 }, ...
-  'updaterType',        { 'rmse', 'constant' }
+  'updaterType',        { 'kendall', 'rmse', 'constant' }
 };
 
 % Model parameters
