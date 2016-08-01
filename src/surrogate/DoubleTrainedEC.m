@@ -80,6 +80,8 @@ classdef DoubleTrainedEC < EvolutionControl
       reevalID = false(1, nLambdaRest);
       assert(obj.origRatioUpdater.getLastRatio(countiter) >= 0 && obj.origRatioUpdater.getLastRatio(countiter) <= 1, 'origRatio out of bounds [0,1]');
       nReeval = ceil(nLambdaRest * obj.origRatioUpdater.getLastRatio(countiter));
+      % check what is happening here
+      fprintf('nReeval: %d / %d\n', nReeval, length(reevalID));
       reevalID(pointID(1:nReeval)) = true;
       xToReeval = xExtend(:, reevalID);
       xToReevalValid = xExtendValid(:, reevalID);

@@ -39,11 +39,11 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
         obj.kendall(countiter) = corr(modelY, origY, 'type', 'Kendall');
       end
       
-      trend = aggregateKendallTrend(obj);
+      ratio = aggregateKendallTrend(obj);
       
       % obj.lastRatio is initialized as 'startRatio' parameter in the
       % constructor
-      newRatio = obj.lastRatio + obj.updateRate * ( -1 * trend);
+      newRatio = obj.lastRatio + obj.updateRate * (ratio - obj.lastRatio);
       newRatio = min(max(newRatio, obj.minRatio), obj.maxRatio);
       
       obj.lastRatio = newRatio;
@@ -106,9 +106,11 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       localKendall(abs(localKendall) < eps) = 100*eps*sign(localKendall(abs(localKendall) < eps));
       localKendall(localKendall == 0) = 100*eps;
       
-      ratios = localKendall(2:end) - localKendall(1:end-1);
+      %ratios = localKendall(2:end) - localKendall(1:end-1);
       
-      value = sum(obj.logKendallWeights(1:nWeights) .* ratios(end:-1:1));
+      %value = sum(obj.logKendallWeights(1:nWeights) .* ratios(end:-1:1));
+      avgKendall = sum(obj.logKendallWeights(1:nWeights) .* localKendall(2:end));
+      value = (-avgKendall + 1) + obj.minRatio;
     end
     
     function value = getLastRatio(obj, countiter)

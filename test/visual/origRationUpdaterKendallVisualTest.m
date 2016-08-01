@@ -1,12 +1,12 @@
 
-weights = [0.5, 0.3, 0.2];
+weights = [0.5, 0.3, 0.2, 0.1, 0.1];
 weights = weights / sum(weights);
 
 maxN = 1000;
 lastN = 20;
 startN = 10;
 
-kendall = sin(linspace(1,lastN,maxN));
+kendall = sin(linspace(1,lastN,maxN)) + (rand(1,maxN)*0.5);
 minRatio = 0.1;
 maxRatio = 1;
 lastRatio = (minRatio + maxRatio) / 2;
@@ -21,11 +21,12 @@ for I = startN:maxN
     localKendall = kendall(I - nWeights : I);
     localKendall(abs(localKendall) < eps) = 100*eps*sign(localKendall(abs(localKendall) < eps));
     localKendall(localKendall == 0) = 100*eps;
-    currentRatios = localKendall(2:end) - localKendall(1:end-1);
-
-    trend = sum(weights(1:nWeights) .* currentRatios(end:-1:1));
+%    currentRatios = localKendall(2:end) - localKendall(1:end-1);
+%    trend = sum(weights(1:nWeights) .* currentRatios(end:-1:1));
     
-    newRatio = lastRatio + updateRate * (-1 * trend);
+    avgKendall = sum(weights(1:nWeights) .* localKendall(2:end));
+    ratio = (-avgKendall + 1) + minRatio;
+    newRatio = lastRatio + updateRate * (ratio - lastRatio);
     newRatio = min(max(newRatio, minRatio), maxRatio);
   
     trends(I) = trend;
