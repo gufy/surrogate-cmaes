@@ -56,7 +56,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % maximal possible ratio returned by getValue
       obj.maxRatio = defopts(obj.parsedParams, 'maxRatio', 1);
       % minimal possible ratio returned by getValue
-      obj.minRatio = defopts(obj.parsedParams, 'minRatio', 0.1);
+      obj.minRatio = defopts(obj.parsedParams, 'minRatio', 0);
       % starting value of ratio for initial generations
       obj.lastRatio = defopts(obj.parsedParams, 'startRatio', (obj.maxRatio - obj.minRatio)/2);
       % how much is the lastRatio affected by the weighted Kendall trend
