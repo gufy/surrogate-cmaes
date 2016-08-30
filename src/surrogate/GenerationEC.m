@@ -42,12 +42,12 @@ classdef GenerationEC < EvolutionControl
         % ratio > 0.9 => 9 models, 5 orig
         % use obj.origRatioUpdater.getLastRatio(countiter)
         
-        if ratio < 0.1
+        if ratio > 0.9
             obj.origGenerations = 1;
             obj.modelGenerations = 0;
         else
             obj.origGenerations = 1;
-            obj.modelGenerations = round(ratio * 10);
+            obj.modelGenerations = round((1-ratio) * 10);
         end
     end
     
