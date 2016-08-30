@@ -10,6 +10,7 @@ classdef GenerationEC < EvolutionControl
     lastOriginalGenerations = [];
     remaining           = 2;
     origRatioUpdater
+    adaptiveAlpha = 1;
   end
 
   methods
@@ -29,6 +30,7 @@ classdef GenerationEC < EvolutionControl
       surrogateOpts.updaterParams = defopts(surrogateOpts, 'updaterParams', {});
       obj.origRatioUpdater = OrigRatioUpdaterFactory.createUpdater(surrogateOpts);
       
+      obj.adaptiveAlpha = surrogateOpts.evoControlAdaptiveAlpha;
       obj.origGenerations = surrogateOpts.evoControlOrigGenerations;
       obj.modelGenerations = surrogateOpts.evoControlModelGenerations;
       obj.currentGeneration   = 1;
@@ -47,7 +49,7 @@ classdef GenerationEC < EvolutionControl
             obj.modelGenerations = 0;
         else
             obj.origGenerations = 1;
-            obj.modelGenerations = round((1-ratio) * 10);
+            obj.modelGenerations = round((1-ratio) * 10 * obj.adaptiveAlpha);
         end
     end
     

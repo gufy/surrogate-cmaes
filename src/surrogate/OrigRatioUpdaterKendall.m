@@ -62,7 +62,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % how much is the lastRatio affected by the weighted Kendall trend
       obj.updateRate = defopts(obj.parsedParams, 'updateRate', 0.45);
       % weights for the weighted sum of the log Kendall ratios
-      obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.5, 0.3, 0.2]);
+      obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.3, 0.2, 0.2, 0.1, 0.1, 0.1]);
       % normalize weights
       obj.logKendallWeights = obj.logKendallWeights / sum(obj.logKendallWeights);
       obj.kendall = [];
