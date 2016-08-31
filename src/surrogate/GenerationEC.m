@@ -5,12 +5,12 @@ classdef GenerationEC < EvolutionControl
     
     origGenerations;
     modelGenerations;
+    maxModelGenerations;
     currentMode         = 'original';
     currentGeneration   = 1;
     lastOriginalGenerations = [];
     remaining           = 2;
     origRatioUpdater
-    adaptiveAlpha = 1;
   end
 
   methods
@@ -30,9 +30,9 @@ classdef GenerationEC < EvolutionControl
       surrogateOpts.updaterParams = defopts(surrogateOpts, 'updaterParams', {});
       obj.origRatioUpdater = OrigRatioUpdaterFactory.createUpdater(surrogateOpts);
       
-      obj.adaptiveAlpha = surrogateOpts.evoControlAdaptiveAlpha;
       obj.origGenerations = surrogateOpts.evoControlOrigGenerations;
       obj.modelGenerations = surrogateOpts.evoControlModelGenerations;
+      obj.maxModelGenerations = obj.modelGenerations;
       obj.currentGeneration   = 1;
       obj.lastModel = [];
       obj.model = [];
@@ -44,12 +44,22 @@ classdef GenerationEC < EvolutionControl
         % ratio > 0.9 => 9 models, 5 orig
         % use obj.origRatioUpdater.getLastRatio(countiter)
         
-        if ratio > 0.9
+        oldModel = obj.modelGenerations;
+        
+        if ratio < 0.1
             obj.origGenerations = 1;
             obj.modelGenerations = 0;
         else
-            obj.origGenerations = 1;
-            obj.modelGenerations = round((1-ratio) * 10 * obj.adaptiveAlpha);
+            obj.origGenerations = obj.origGenerations;
+            obj.modelGenerations = round((ratio) * obj.maxModelGenerations);
+        end
+        
+        if oldModel > obj.modelGenerations
+        
+            obj.remaining = max(0, oldModel - obj.modelGenerations);
+            fprintf('Updating generations: ratio=%0.2f, orig=%d, model=%d\n', ...
+                ratio, obj.origGenerations, obj.modelGenerations);
+            
         end
     end
     
@@ -253,8 +263,8 @@ classdef GenerationEC < EvolutionControl
       % change the currentMode if all the generations from
       % the current mode have passed
       ratio = obj.origRatioUpdater.getLastRatio(countiter);
-      obj.updateGenerationsFromRatio(ratio);
       obj.remaining = obj.remaining - 1;
+      obj.updateGenerationsFromRatio(ratio);
       switch obj.currentMode
         case 'initial'
           if (obj.remaining == 0)
@@ -263,9 +273,13 @@ classdef GenerationEC < EvolutionControl
           end
           obj.lastOriginalGenerations = [obj.lastOriginalGenerations, obj.currentGeneration];
         case 'original'
-          if (obj.remaining == 0)
+          if (obj.remaining == 0 && obj.modelGenerations > 0)
             obj.currentMode = 'model';
             obj.remaining = obj.modelGenerations;
+          else
+            if obj.remaining == 0
+                obj.remaining = obj.origGenerations;
+            end
           end
           obj.lastOriginalGenerations = [obj.lastOriginalGenerations, obj.currentGeneration];
         case 'model'

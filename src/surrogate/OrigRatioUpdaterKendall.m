@@ -12,6 +12,12 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
     
     kendall
     lastUpdateGeneration
+    
+    plotDebug = 0;
+    historyKendall = [];
+    historyRatio = [];
+    historyTrend = [];
+    fh
   end
   
   methods 
@@ -46,6 +52,14 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       newRatio = obj.lastRatio + obj.updateRate * (ratio - obj.lastRatio);
       newRatio = min(max(newRatio, obj.minRatio), obj.maxRatio);
       
+      if obj.plotDebug
+          fprintf('New ratio=%0.2f based on kendall trend=%0.2f\n', newRatio, ratio);
+
+          obj.historyRatio = [obj.historyRatio newRatio];
+          obj.historyKendall = [obj.historyKendall obj.kendall(countiter)];
+          obj.historyTrend = [obj.historyTrend ratio];
+      end
+      
       obj.lastRatio = newRatio;
     end
 
@@ -62,11 +76,16 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % how much is the lastRatio affected by the weighted Kendall trend
       obj.updateRate = defopts(obj.parsedParams, 'updateRate', 0.45);
       % weights for the weighted sum of the log Kendall ratios
-      obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.3, 0.2, 0.2, 0.1, 0.1, 0.1]);
+      obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.5, 0.3, 0.2]);
       % normalize weights
       obj.logKendallWeights = obj.logKendallWeights / sum(obj.logKendallWeights);
       obj.kendall = [];
       obj.lastUpdateGeneration = 0;
+      
+      if obj.plotDebug 
+        figure;
+        obj.fh = axes;
+      end
     end
     
     function value = aggregateKendallTrend(obj)
@@ -87,7 +106,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       nWeights = min(length(obj.kendall) - 1, length(obj.logKendallWeights));
       localKendall = obj.kendall(end - nWeights : end);
       
-      local_max_kendall = 2*max(localKendall(~isnan(localKendall)));
+      local_max_kendall = min(localKendall(~isnan(localKendall)));
       if isempty(local_max_kendall)
         localKendall(isnan(localKendall)) = DEFAULT_KENDALL;
       else
@@ -117,7 +136,18 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       if countiter > obj.lastUpdateGeneration + 1
         obj.update([], [], [], [], countiter);
       end
-      value = obj.lastRatio;
+      value = 1 - obj.lastRatio;
+      
+      if obj.plotDebug
+          scatter(1:length(obj.historyKendall), obj.historyKendall, 140, '.');
+          hold on;
+          scatter(1:length(obj.historyTrend), obj.historyTrend, 140, '.');
+          scatter(1:length(obj.historyRatio), obj.historyRatio, 140, '.');
+          legend('Kendall', 'Trend', 'Ratio');
+          hold off;
+          pause(0.0001);    
+      end
+      
     end
     
   end
