@@ -1,4 +1,7 @@
 classdef OrigRatioUpdaterKendall < OrigRatioUpdater
+  % TODO:
+  % [ ] use just the real values of kendall
+    
   properties
     origParams
     lastRatio
@@ -9,6 +12,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
     updateRate
     logKendallWeights
     logKendallRatioTreshold
+    trendingHistorySize
     
     kendall
     lastUpdateGeneration
@@ -49,7 +53,12 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       
       % obj.lastRatio is initialized as 'startRatio' parameter in the
       % constructor
-      newRatio = obj.lastRatio + obj.updateRate * (ratio - obj.lastRatio);
+      
+      if ratio < obj.lastRatio 
+        newRatio = obj.minRatio;
+      else
+        newRatio = obj.lastRatio + obj.updateRate * (ratio - obj.lastRatio);
+      end
       newRatio = min(max(newRatio, obj.minRatio), obj.maxRatio);
       
       if obj.plotDebug
@@ -75,10 +84,14 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       obj.lastRatio = defopts(obj.parsedParams, 'startRatio', (obj.maxRatio - obj.minRatio)/2);
       % how much is the lastRatio affected by the weighted Kendall trend
       obj.updateRate = defopts(obj.parsedParams, 'updateRate', 0.45);
+      
+      obj.trendingHistorySize = defopts(obj.parsedParams, 'trendingHistorySize', 10);
+      
       % weights for the weighted sum of the log Kendall ratios
-      obj.logKendallWeights = defopts(obj.parsedParams, 'logKendallWeights', [0.5, 0.3, 0.2]);
+      obj.logKendallWeights = exp(1:obj.trendingHistorySize);
       % normalize weights
       obj.logKendallWeights = obj.logKendallWeights / sum(obj.logKendallWeights);
+      
       obj.kendall = [];
       obj.lastUpdateGeneration = 0;
       
@@ -101,42 +114,35 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       
       % default value of imaginary Kendall when all Kendall values are NaN
       % in the last obj.kendall entries
-      DEFAULT_KENDALL = 0;
       
       nWeights = min(length(obj.kendall) - 1, length(obj.logKendallWeights));
-      localKendall = obj.kendall(end - nWeights : end);
+      localKendall = obj.kendall(end - nWeights + 1 : end);
+      weights = obj.logKendallWeights(1:nWeights);
+      weights = weights(~isnan(localKendall));
+      localKendall = localKendall(~isnan(localKendall));
+      weights = weights / sum(weights);
+      weightedKendall = weights .* localKendall;
       
-      local_max_kendall = min(localKendall(~isnan(localKendall)));
-      if isempty(local_max_kendall)
-        localKendall(isnan(localKendall)) = DEFAULT_KENDALL;
-      else
-        localKendall(isnan(localKendall)) = local_max_kendall;
-      end
-      
-      if length(localKendall) <= 1
+      if length(weightedKendall) < 1
         % we don't have enough Kendall history values ==> stay at the
         % current origRatio ==> set aggregateKendallTrend = 0
         value = 0;
         return
       end
-      assert(length(localKendall)-1 == nWeights, 'DEBUG assertion failed: length of Kendall ~= nWeights + 1');
       
       % replace zeros for division
-      localKendall(abs(localKendall) < eps) = 100*eps*sign(localKendall(abs(localKendall) < eps));
-      localKendall(localKendall == 0) = 100*eps;
+      weightedKendall(abs(weightedKendall) < eps) = 100*eps*sign(weightedKendall(abs(weightedKendall) < eps));
+      weightedKendall(weightedKendall == 0) = 100*eps;
       
-      %ratios = localKendall(2:end) - localKendall(1:end-1);
-      
-      %value = sum(obj.logKendallWeights(1:nWeights) .* ratios(end:-1:1));
-      avgKendall = sum(obj.logKendallWeights(1:nWeights) .* localKendall(2:end));
-      value = (-avgKendall + 1) + obj.minRatio;
+      avgKendall = sum(weightedKendall);
+      value = avgKendall;
     end
     
     function value = getLastRatio(obj, countiter)
       if countiter > obj.lastUpdateGeneration + 1
         obj.update([], [], [], [], countiter);
       end
-      value = 1 - obj.lastRatio;
+      value = obj.lastRatio;
       
       if obj.plotDebug
           scatter(1:length(obj.historyKendall), obj.historyKendall, 140, '.');

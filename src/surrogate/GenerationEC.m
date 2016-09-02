@@ -10,6 +10,7 @@ classdef GenerationEC < EvolutionControl
     currentGeneration   = 1;
     lastOriginalGenerations = [];
     remaining           = 2;
+    ceilingForModelGenerations = 1;
     origRatioUpdater
   end
 
@@ -49,9 +50,19 @@ classdef GenerationEC < EvolutionControl
         if ratio < 0.1
             obj.origGenerations = 1;
             obj.modelGenerations = 0;
+            obj.ceilingForModelGenerations = 1;
         else
             obj.origGenerations = obj.origGenerations;
             obj.modelGenerations = round((ratio) * obj.maxModelGenerations);
+            
+            if obj.ceilingForModelGenerations > obj.modelGenerations
+                obj.ceilingForModelGenerations = obj.ceilingForModelGenerations - 1;
+            end
+               
+            if obj.ceilingForModelGenerations < obj.modelGenerations
+                obj.modelGenerations = obj.ceilingForModelGenerations;
+                obj.ceilingForModelGenerations = obj.ceilingForModelGenerations + 1;
+            end
         end
         
         if oldModel > obj.modelGenerations
