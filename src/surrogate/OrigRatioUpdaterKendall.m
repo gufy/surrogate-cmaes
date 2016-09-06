@@ -10,14 +10,12 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
     maxRatio
     minRatio
     updateRate
-    logKendallWeights
     logKendallRatioTreshold
-    trendingHistorySize
     
     kendall
     lastUpdateGeneration
     
-    plotDebug = 0;
+    plotDebug = 1;
     historyKendall = [];
     historyRatio = [];
     historyTrend = [];
@@ -26,7 +24,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
   
   methods 
     % get new value of parameter
-    function newRatio = update(obj, modelY, origY, ~, ~, countiter)
+    function newRatio = update(obj, modelY, origY, ~, ~, countiter, nWeights)
       % ratio is updated according to the following formula
       %
       % newRatio = lastRatio + updateRate*(logKendallWeights.*logKendall - logKendallRatioTreshold)     (eqn. 1)
@@ -49,7 +47,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
         obj.kendall(countiter) = corr(modelY, origY, 'type', 'Kendall');
       end
       
-      ratio = aggregateKendallTrend(obj);
+      ratio = aggregateKendallTrend(obj, nWeights);
       
       % obj.lastRatio is initialized as 'startRatio' parameter in the
       % constructor
@@ -85,13 +83,6 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % how much is the lastRatio affected by the weighted Kendall trend
       obj.updateRate = defopts(obj.parsedParams, 'updateRate', 0.45);
       
-      obj.trendingHistorySize = defopts(obj.parsedParams, 'trendingHistorySize', 10);
-      
-      % weights for the weighted sum of the log Kendall ratios
-      obj.logKendallWeights = exp(1:obj.trendingHistorySize);
-      % normalize weights
-      obj.logKendallWeights = obj.logKendallWeights / sum(obj.logKendallWeights);
-      
       obj.kendall = [];
       obj.lastUpdateGeneration = 0;
       
@@ -101,7 +92,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       end
     end
     
-    function value = aggregateKendallTrend(obj)
+    function value = aggregateKendallTrend(obj, nWeights)
       % aggregate last Kendall's into one value expressing an increasing or
       % decreasing trend
       %
@@ -115,9 +106,11 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       % default value of imaginary Kendall when all Kendall values are NaN
       % in the last obj.kendall entries
       
-      nWeights = min(length(obj.kendall) - 1, length(obj.logKendallWeights));
+      logKendallWeights = exp(1:nWeights);
+      logKendallWeights = logKendallWeights / sum(logKendallWeights);
+      nWeights = min(length(obj.kendall) - 1, length(logKendallWeights));
       localKendall = obj.kendall(end - nWeights + 1 : end);
-      weights = obj.logKendallWeights(1:nWeights);
+      weights = logKendallWeights(1:nWeights);
       weights = weights(~isnan(localKendall));
       localKendall = localKendall(~isnan(localKendall));
       weights = weights / sum(weights);
@@ -138,9 +131,9 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
       value = avgKendall;
     end
     
-    function value = getLastRatio(obj, countiter)
+    function value = getLastRatio(obj, countiter, nWeights)
       if countiter > obj.lastUpdateGeneration + 1
-        obj.update([], [], [], [], countiter);
+        obj.update([], [], [], [], countiter, nWeights);
       end
       value = obj.lastRatio;
       

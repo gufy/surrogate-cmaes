@@ -11,6 +11,7 @@ classdef GenerationEC < EvolutionControl
     lastOriginalGenerations = [];
     remaining           = 2;
     ceilingForModelGenerations = 1;
+    ceilingStrategy = 'none';
     origRatioUpdater
   end
 
@@ -30,10 +31,11 @@ classdef GenerationEC < EvolutionControl
       surrogateOpts.updaterType = defopts(surrogateOpts, 'updaterType', 'none');
       surrogateOpts.updaterParams = defopts(surrogateOpts, 'updaterParams', {});
       obj.origRatioUpdater = OrigRatioUpdaterFactory.createUpdater(surrogateOpts);
+      obj.ceilingStrategy = defopts(surrogateOpts, 'evoControlCeilingStrategy', 'none'); 
       
       obj.origGenerations = surrogateOpts.evoControlOrigGenerations;
       obj.modelGenerations = surrogateOpts.evoControlModelGenerations;
-      obj.maxModelGenerations = obj.modelGenerations;
+      obj.ceilingForModelGenerations = obj.modelGenerations;
       obj.currentGeneration   = 1;
       obj.lastModel = [];
       obj.model = [];
@@ -50,19 +52,35 @@ classdef GenerationEC < EvolutionControl
         if ratio < 0.1
             obj.origGenerations = 1;
             obj.modelGenerations = 0;
-            obj.ceilingForModelGenerations = 1;
         else
             obj.origGenerations = obj.origGenerations;
-            obj.modelGenerations = round((ratio) * obj.maxModelGenerations);
-            
-            if obj.ceilingForModelGenerations > obj.modelGenerations
-                obj.ceilingForModelGenerations = obj.ceilingForModelGenerations - 1;
+            obj.modelGenerations = round((ratio) * obj.ceilingForModelGenerations);
+        end
+        
+        if strcmp(obj.ceilingStrategy, 'none')
+            switch (ceilingStrategy)
+                case 'add'
+                    if obj.ceilingForModelGenerations > obj.modelGenerations
+                        obj.ceilingForModelGenerations = obj.ceilingForModelGenerations - 1;
+                    end
+
+                    if obj.ceilingForModelGenerations < obj.modelGenerations
+                        obj.ceilingForModelGenerations = obj.ceilingForModelGenerations + 1;
+                        obj.modelGenerations = obj.ceilingForModelGenerations;
+                    end
+
+                case 'multi'
+                    if obj.ceilingForModelGenerations > obj.modelGenerations*2
+                        obj.ceilingForModelGenerations = round(obj.ceilingForModelGenerations / 2);
+                    end
+
+                    if obj.ceilingForModelGenerations < obj.modelGenerations
+                        obj.ceilingForModelGenerations = obj.ceilingForModelGenerations*2;
+                        obj.modelGenerations = min(obj.modelGenerations, obj.ceilingForModelGenerations);
+                    end
             end
-               
-            if obj.ceilingForModelGenerations < obj.modelGenerations
-                obj.modelGenerations = obj.ceilingForModelGenerations;
-                obj.ceilingForModelGenerations = obj.ceilingForModelGenerations + 1;
-            end
+        else
+
         end
         
         if oldModel > obj.modelGenerations
@@ -102,8 +120,8 @@ classdef GenerationEC < EvolutionControl
             
             yPredict = obj.lastModel.predict(arxvalid');
             % origRatio adaptivity
-            obj.origRatioUpdater.update(yPredict, fitness_raw', dim, lambda, countiter);
-            fprintf('OrigRatio: %f\n', obj.origRatioUpdater.getLastRatio(countiter));
+            obj.origRatioUpdater.update(yPredict, fitness_raw', dim, lambda, countiter, max(obj.modelGenerations, obj.ceilingForModelGenerations) * 3);
+            fprintf('OrigRatio: %f\n', obj.origRatioUpdater.getLastRatio(countiter, max(obj.modelGenerations, obj.ceilingForModelGenerations) * 3));
 
         end
         
@@ -273,7 +291,7 @@ classdef GenerationEC < EvolutionControl
     function obj = next(obj, countiter)
       % change the currentMode if all the generations from
       % the current mode have passed
-      ratio = obj.origRatioUpdater.getLastRatio(countiter);
+      ratio = obj.origRatioUpdater.getLastRatio(countiter, max(obj.modelGenerations, obj.ceilingForModelGenerations) * 3);
       obj.remaining = obj.remaining - 1;
       obj.updateGenerationsFromRatio(ratio);
       switch obj.currentMode
