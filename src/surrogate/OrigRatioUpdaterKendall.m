@@ -15,7 +15,7 @@ classdef OrigRatioUpdaterKendall < OrigRatioUpdater
     kendall
     lastUpdateGeneration
     
-    plotDebug = 1;
+    plotDebug = 0;
     historyKendall = [];
     historyRatio = [];
     historyTrend = [];
